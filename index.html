@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <title>Document</title>
+  </head>
+  <body>
+    <table align="center">
+      <tr>
+        <td>
+          <input
+            type="text"
+            placeholder="Type your idea ..."
+            id="add-idea"
+            class="form-control"
+          />
+        </td>
+        <td>
+          <button class="btn btn-primary" id="button">Send</button>
+        </td>
+      </tr>
+      <tr></tr>
+      <tr>
+        <td>Current Idea:</td>
+        <td id="text"></td>
+      </tr>
+    </table>
+    <script src="https://cdn.jsdelivr.net/npm/near-api-js@0.41.0/dist/near-api-js.min.js"></script>
+    <script>
+      // connect to NEAR
+      const near = new nearApi.Near({
+        keyStore: new nearApi.keyStores.BrowserLocalStorageKeyStore(),
+        networkId: "testnet",
+        nodeUrl: "https://rpc.testnet.near.org",
+        walletUrl: "https://wallet.testnet.near.org",
+      });
+
+      const wallet = new nearApi.WalletConnection(near, "my-app");
+
+      const contract = new nearApi.Contract(wallet.account(), "puanq.testnet", {
+        viewMethods: ["get_idea"],
+        changeMethods: ["set_idea"],
+        senders: wallet.getAccountId(),
+      });
+
+      if (contract) console.log("init successfull");
+
+      const button = document.getElementById("button");
+      if (!wallet.isSignedIn()) {
+        button.textContent = "SignIn with NEAR";
+        console.log("not login");
+      } else {
+        console.log("login");
+        console.log(wallet.account().accountId);
+      }
+
+      if (wallet.isSignedIn()) {
+        contract
+          .get_idea({
+            args: { account_id: wallet.account().accountId },
+          })
+          .then((messages) => console.log(messages))
+          .catch((err) => console.log(err));
+      }
+
+      document.getElementById("button").addEventListener("click", () => {
+        if (wallet.isSignedIn()) {
+          contract.set_idea({
+            args: {
+              message: document.getElementById("add-idea").value,
+              account_id: 'puanq.testnet'.toString,
+            },
+          });
+        } else {
+          wallet.requestSignIn({
+            contractId: "puanq.testnet",
+            methodNames: ["get_idea", "set_idea"],
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
