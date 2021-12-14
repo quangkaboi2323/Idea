@@ -1,0 +1,2 @@
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/media/quang/HDD/WorkForJoyTech/start_again/idea/target/debug/build/typenum-74f4fd522879e552/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/media/quang/HDD/WorkForJoyTech/start_again/idea/target/debug/build/typenum-74f4fd522879e552/out/op.rs

@@ -33,6 +33,27 @@
         <td id="text"></td>
       </tr>
     </table>
+    <hr />
+    <table align="center">
+      <tr>
+        <td>
+          <input
+            type="text"
+            id="searchTxt"
+            class="form-control"
+            placeholder="Search idea of testnet account..."
+          />
+        </td>
+        <td>
+          <button class="btn btn-primary" id="searchBtn">Find</button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <span class="form-control bg-dark text-white" id="searchResult">Result...</span>
+        </td>
+      </tr>
+    </table>
     <script src="https://cdn.jsdelivr.net/npm/near-api-js@0.41.0/dist/near-api-js.min.js"></script>
     <script>
       // connect to NEAR
@@ -45,11 +66,15 @@
 
       const wallet = new nearApi.WalletConnection(near, "my-app");
 
-      const contract = new nearApi.Contract(wallet.account(), "puanq.testnet", {
-        viewMethods: ["get_idea"],
-        changeMethods: ["set_idea"],
-        senders: wallet.getAccountId(),
-      });
+      const contract = new nearApi.Contract(
+        wallet.account(),
+        "idea.puanq.testnet",
+        {
+          viewMethods: ["get_idea"],
+          changeMethods: ["set_idea"],
+          senders: wallet.getAccountId(),
+        }
+      );
 
       if (contract) console.log("init successfull");
 
@@ -62,30 +87,47 @@
         console.log(wallet.account().accountId);
       }
 
-      if (wallet.isSignedIn()) {
-        contract
-          .get_idea({
-            args: { account_id: wallet.account().accountId },
-          })
-          .then((messages) => console.log(messages))
-          .catch((err) => console.log(err));
-      }
+      const idea = document.getElementById("text");
+      const response = contract.get_idea({
+        account_id: wallet.account().accountId,
+      });
+      console.log(response);
+
+      contract
+        .get_idea({ account_id: wallet.account().accountId })
+        .then((result) => {
+          console.log(result);
+          idea.textContent = result;
+        });
 
       document.getElementById("button").addEventListener("click", () => {
         if (wallet.isSignedIn()) {
           contract.set_idea({
             args: {
               message: document.getElementById("add-idea").value,
-              account_id: 'puanq.testnet'.toString,
             },
           });
         } else {
           wallet.requestSignIn({
-            contractId: "puanq.testnet",
+            contractId: "idea.puanq.testnet",
             methodNames: ["get_idea", "set_idea"],
           });
         }
       });
+      document.getElementById("searchBtn").addEventListener("click", () => {
+        const searchTxt = document.getElementById("searchTxt").value;
+        if(searchTxt != ''){
+          contract.get_idea({account_id: searchTxt}).then((response) => {
+            const searchResult = document.getElementById("searchResult");
+            console.log(response);
+            if(response == null){
+              searchResult.textContent = 'Result is null';
+            }else{
+              searchResult.textContent = response;
+            }            
+          })
+        }        
+      })
     </script>
   </body>
 </html>
